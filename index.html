@@ -16,58 +16,65 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
         }
 
         .container {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            width: 100%;
-            max-width: 400px;
+            background: var(--card-bg); padding: 25px;
+            border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            width: 100%; max-width: 400px;
         }
 
-        h2 { 
-            text-align: center; 
-            color: var(--text-main);
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
+        h2 { text-align: center; color: var(--text-main); margin-top: 0; margin-bottom: 20px;}
 
         .progress-container {
-            background-color: #e0e0e0;
-            border-radius: 8px;
-            height: 10px;
-            width: 100%;
-            margin-bottom: 25px;
-            overflow: hidden;
+            background-color: #e0e0e0; border-radius: 8px;
+            height: 10px; width: 100%; margin-bottom: 25px; overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%; background-color: var(--primary-color);
+            width: 0%; transition: width 0.3s ease;
         }
 
-        .progress-bar {
-            height: 100%;
-            background-color: var(--primary-color);
-            width: 0%;
-            transition: width 0.3s ease;
+        /* Area Tambah Habit */
+        .add-habit-container {
+            display: flex; gap: 10px; margin-bottom: 20px;
+        }
+        .add-habit-container input {
+            flex: 1; padding: 10px; border: 1px solid #ccc;
+            border-radius: 8px; outline: none; font-size: 14px;
+        }
+        .add-habit-container button {
+            background-color: var(--primary-color); color: white;
+            border: none; border-radius: 8px; padding: 10px 15px;
+            cursor: pointer; font-weight: bold;
         }
 
         .habit-list { list-style: none; padding: 0; margin: 0; }
         .habit-item {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 14px 0; border-bottom: 1px solid #f0f0f0;
+            padding: 12px 0; border-bottom: 1px solid #f0f0f0; gap: 10px;
         }
         .habit-item:last-child { border-bottom: none; }
-        .habit-name { font-size: 16px; color: var(--text-muted); font-weight: 500; }
         
-        input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--primary-color); cursor: pointer; }
+        .habit-info {
+            display: flex; align-items: center; gap: 12px; flex: 1;
+        }
+        .habit-name { font-size: 16px; color: var(--text-muted); font-weight: 500; word-break: break-word;}
+        
+        /* Tombol Aksi */
+        .action-btns { display: flex; gap: 5px; }
+        .action-btns button {
+            background: none; border: none; cursor: pointer;
+            font-size: 16px; opacity: 0.6; transition: opacity 0.2s;
+        }
+        .action-btns button:hover { opacity: 1; }
+        
+        input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--primary-color); cursor: pointer; }
 
         .btn-sync {
-            width: 100%; padding: 14px; margin-top: 20px;
+            width: 100%; padding: 14px; margin-top: 25px;
             background-color: #2196F3; color: white;
             border: none; border-radius: 8px; font-weight: bold;
             cursor: pointer; font-size: 16px; transition: background 0.3s;
@@ -84,90 +91,125 @@
         <div class="progress-bar" id="progressBar"></div>
     </div>
 
+    <div class="add-habit-container">
+        <input type="text" id="newHabitInput" placeholder="Ketik habit baru...">
+        <button onclick="addHabit()">Tambah</button>
+    </div>
+
     <ul class="habit-list" id="habitList"></ul>
 
     <button class="btn-sync" id="btnSync" onclick="syncToSheet()">Simpan ke Spreadsheet</button>
 </div>
 
 <script>
-    // 1. DAFTAR HABIT (Pastikan urutannya sama persis dengan baris 6-15 di Spreadsheet Anda)
-    const habits = [
-        "Habit 1", "Habit 2", "Habit 3", "Habit 4", "Habit 5",
-        "Habit 6", "Habit 7", "Habit 8", "Habit 9", "Habit 10"
-    ];
-
     // ======================================================================
-    // 2. PASTE URL APPS SCRIPT ANDA DI ANTARA TANDA KUTIP DI BAWAH INI:
+    // PASTE URL APPS SCRIPT ANDA DI ANTARA TANDA KUTIP DI BAWAH INI:
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxmna0szVmBrWhMmznXkuq519TRzahIJDzBhrmEnM5b6g0GOEuzzuwmRpP5z_ndSb5UQ/exec"; 
-    // Contoh: "https://script.google.com/macros/s/AKfycb.../exec"
     // ======================================================================
+
+    // Mengambil data dari memori HP. Jika kosong, pakai template default
+    let habits = JSON.parse(localStorage.getItem('habitDataObj')) || [
+        { name: "Bangun Pagi", status: false },
+        { name: "Membaca Buku", status: false },
+        { name: "Olahraga", status: false }
+    ];
 
     const habitListEl = document.getElementById('habitList');
     const progressBarEl = document.getElementById('progressBar');
+    const inputEl = document.getElementById('newHabitInput');
 
-    function updateProgress() {
-        let completed = 0;
-        habits.forEach((_, index) => {
-            if (localStorage.getItem(`habit_${index}`) === 'true') {completed++;}
-        });
-        progressBarEl.style.width = (completed / habits.length) * 100 + '%';
+    // Menyimpan perubahan ke memori HP dan merender ulang tampilan
+    function saveAndRender() {
+        localStorage.setItem('habitDataObj', JSON.stringify(habits));
+        renderHabits();
     }
 
-    function loadHabits() {
+    // Menampilkan daftar habit ke layar
+    function renderHabits() {
         habitListEl.innerHTML = '';
+        let completed = 0;
+
         habits.forEach((habit, index) => {
-            const isChecked = localStorage.getItem(`habit_${index}`) === 'true';
+            if (habit.status) completed++;
+
             const li = document.createElement('li');
             li.className = 'habit-item';
             li.innerHTML = `
-                <span class="habit-name">${habit}</span>
-                <input type="checkbox" onchange="toggleHabit(${index}, this)" ${isChecked ? 'checked' : ''}>
+                <div class="habit-info">
+                    <input type="checkbox" onchange="toggleHabit(${index})" ${habit.status ? 'checked' : ''}>
+                    <span class="habit-name">${habit.name}</span>
+                </div>
+                <div class="action-btns">
+                    <button onclick="editHabit(${index})" title="Edit">✏️</button>
+                    <button onclick="deleteHabit(${index})" title="Hapus">🗑️</button>
+                </div>
             `;
             habitListEl.appendChild(li);
         });
-        updateProgress();
+
+        // Update Progress Bar
+        const percentage = habits.length === 0 ? 0 : (completed / habits.length) * 100;
+        progressBarEl.style.width = percentage + '%';
     }
 
-    function toggleHabit(index, checkbox) {
-        localStorage.setItem(`habit_${index}`, checkbox.checked);
-        updateProgress();
+    // FITUR CRUD
+    function toggleHabit(index) {
+        habits[index].status = !habits[index].status;
+        saveAndRender();
     }
 
-    // Fungsi Mengirim Data Array [true, false, true...] ke Apps Script
+    function addHabit() {
+        const val = inputEl.value.trim();
+        if (val === "") return;
+        habits.push({ name: val, status: false });
+        inputEl.value = "";
+        saveAndRender();
+    }
+
+    function editHabit(index) {
+        const newName = prompt("Ubah nama habit:", habits[index].name);
+        if (newName !== null && newName.trim() !== "") {
+            habits[index].name = newName.trim();
+            saveAndRender();
+        }
+    }
+
+    function deleteHabit(index) {
+        if (confirm(`Yakin ingin menghapus habit "${habits[index].name}"?`)) {
+            habits.splice(index, 1);
+            saveAndRender();
+        }
+    }
+
+    // FITUR SINKRONISASI
     function syncToSheet() {
-        // Peringatan jika URL belum diganti
         if(SCRIPT_URL === "PASTE_URL_APPS_SCRIPT_ANDA_DI_SINI") {
-            alert("Oops! Anda belum memasukkan URL Apps Script di dalam kode HTML.");
-            return;
+            alert("URL Apps Script belum dimasukkan di HTML!"); return;
         }
 
         const btn = document.getElementById('btnSync');
         btn.innerText = "Menyimpan...";
         btn.style.backgroundColor = "#999";
 
-        let rowData = [];
-        habits.forEach((_, index) => {
-            let isChecked = localStorage.getItem(`habit_${index}`) === 'true';
-            rowData.push(isChecked);
-        });
-
+        // Mengirimkan array objek langsung ke Apps Script
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors', 
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(rowData)
+            body: JSON.stringify(habits)
         }).then(() => {
-            alert("Mantap! Data hari ini berhasil dicentang di Google Sheets!");
+            alert("Mantap! Data & Nama Habit berhasil disinkronkan ke Spreadsheet!");
             btn.innerText = "Simpan ke Spreadsheet";
             btn.style.backgroundColor = "#2196F3";
         }).catch(error => {
-            alert("Gagal menyimpan data. Coba cek koneksi internet.");
+            alert("Gagal menyimpan data.");
             btn.innerText = "Coba Lagi";
             btn.style.backgroundColor = "#f44336";
         });
     }
 
-    loadHabits();
+    // Render pertama kali saat web dibuka
+    renderHabits();
 </script>
 
 </body>
