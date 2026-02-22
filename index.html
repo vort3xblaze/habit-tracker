@@ -102,44 +102,35 @@
         </ul>
 </div>
 
+<button id="btnSync" onclick="syncToSheet()" style="width: 100%; padding: 12px; margin-top: 20px; background-color: #2196F3; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
+    Simpan ke Spreadsheet
+</button>
+
 <script>
-    // 1. Definisikan daftar habit (Bisa disesuaikan dengan isi Spreadsheet)
     const habits = [
-        "Bangun Pagi (05:00)", 
-        "Olahraga 15 Menit", 
-        "Membaca 10 Halaman", 
-        "Minum Air 2L", 
-        "Belajar / Eksperimen Kode", 
-        "Ibadah Tepat Waktu",
-        "Tidur Sebelum Jam 23:00", 
-        "Merapikan Area Kerja", 
-        "Kurangi Screen Time", 
-        "Evaluasi Hari Ini"
+        "Bangun Pagi", "Olahraga 15 Menit", "Membaca Buku", 
+        "Minum Air 2L", "Coding/Belajar", "Sholat Tepat Waktu",
+        "Tidur Sebelum Jam 11", "Jurnal Harian", "Merapikan Kamar", "Kurangi Sosmed"
     ];
 
     const habitListEl = document.getElementById('habitList');
     const progressBarEl = document.getElementById('progressBar');
+    
+    // GANTI STRING DI BAWAH DENGAN URL APPS SCRIPT YANG ANDA SALIN TADI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycb.../exec"; 
 
-    // 2. Fungsi untuk menghitung dan memperbarui bar persentase
     function updateProgress() {
         let completed = 0;
         habits.forEach((_, index) => {
-            if (localStorage.getItem(`habit_${index}`) === 'true') {
-                completed++;
-            }
+            if (localStorage.getItem(`habit_${index}`) === 'true') {completed++;}
         });
-        const percentage = (completed / habits.length) * 100;
-        progressBarEl.style.width = percentage + '%';
+        progressBarEl.style.width = (completed / habits.length) * 100 + '%';
     }
 
-    // 3. Fungsi untuk memuat antarmuka habit ke layar
     function loadHabits() {
-        habitListEl.innerHTML = ''; // Bersihkan list sebelum memuat ulang
-        
+        habitListEl.innerHTML = '';
         habits.forEach((habit, index) => {
-            // Cek memori HP/Browser apakah sebelumnya sudah dicentang
             const isChecked = localStorage.getItem(`habit_${index}`) === 'true';
-            
             const li = document.createElement('li');
             li.className = 'habit-item';
             li.innerHTML = `
@@ -148,20 +139,50 @@
             `;
             habitListEl.appendChild(li);
         });
-        
-        updateProgress(); // Perbarui progress bar saat pertama kali dimuat
+        updateProgress();
     }
 
-    // 4. Fungsi yang berjalan setiap kali checkbox diklik
     function toggleHabit(index, checkbox) {
-        // Simpan status (true/false) ke memori lokal
         localStorage.setItem(`habit_${index}`, checkbox.checked);
-        updateProgress(); // Perbarui progress bar secara real-time
+        updateProgress();
     }
 
-    // Jalankan aplikasi
+    // FITUR BARU: Mengirim data ke Google Sheets
+    function syncToSheet() {
+        const btn = document.getElementById('btnSync');
+        btn.innerText = "Menyimpan...";
+        btn.style.backgroundColor = "#999";
+
+        // Siapkan data: [Tanggal Hari Ini, StatusHabit1, StatusHabit2, ... , Persentase]
+        let rowData = [new Date().toLocaleDateString('id-ID')];
+        let completed = 0;
+        
+        habits.forEach((_, index) => {
+            let status = localStorage.getItem(`habit_${index}`) === 'true' ? "Selesai" : "Belum";
+            rowData.push(status);
+            if(status === "Selesai") completed++;
+        });
+        
+        // Tambahkan persentase di kolom paling akhir
+        rowData.push(((completed / habits.length) * 100).toFixed(0) + "%");
+
+        // Kirim ke Apps Script
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Penting agar tidak diblokir browser
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(rowData)
+        }).then(() => {
+            alert("Data hari ini berhasil direkap ke Google Sheets!");
+            btn.innerText = "Simpan ke Spreadsheet";
+            btn.style.backgroundColor = "#2196F3";
+        }).catch(error => {
+            alert("Gagal menyimpan data.");
+            btn.innerText = "Coba Lagi";
+        });
+    }
+
     loadHabits();
 </script>
-
 </body>
 </html>
