@@ -3,213 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Habit Tracker 2026</title>
+    <title>Personal Dashboard</title>
     <style>
         :root {
-            --primary-color: #4CAF50;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-muted: #666666;
+            --primary: #4CAF50; --bg: #f4f7f6; --card: #ffffff;
+            --text-dark: #333; --text-muted: #666; --warning: #ff9800;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0; padding: 20px;
+            background-color: var(--bg); margin: 0; padding: 20px;
             display: flex; flex-direction: column; align-items: center;
         }
 
-        .container {
-            background: var(--card-bg); padding: 25px;
-            border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            width: 100%; max-width: 400px;
+        .dashboard {
+            width: 100%; max-width: 450px;
+            display: flex; flex-direction: column; gap: 20px;
         }
 
-        h2 { text-align: center; color: var(--text-main); margin-top: 0; margin-bottom: 20px;}
-
-        .progress-container {
-            background-color: #e0e0e0; border-radius: 8px;
-            height: 10px; width: 100%; margin-bottom: 25px; overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%; background-color: var(--primary-color);
-            width: 0%; transition: width 0.3s ease;
+        .card {
+            background: var(--card); padding: 20px;
+            border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
-        /* Area Tambah Habit */
-        .add-habit-container {
-            display: flex; gap: 10px; margin-bottom: 20px;
-        }
-        .add-habit-container input {
-            flex: 1; padding: 10px; border: 1px solid #ccc;
-            border-radius: 8px; outline: none; font-size: 14px;
-        }
-        .add-habit-container button {
-            background-color: var(--primary-color); color: white;
-            border: none; border-radius: 8px; padding: 10px 15px;
-            cursor: pointer; font-weight: bold;
-        }
+        h2 { margin: 0 0 15px 0; color: var(--text-dark); font-size: 20px; display: flex; align-items: center; gap: 8px;}
+        .subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 15px; }
 
+        /* Zona Kemarin */
+        .missed-list { list-style: none; padding: 0; margin: 0; color: var(--warning); font-weight: bold;}
+        .missed-list li { padding: 8px 0; border-bottom: 1px dashed #eee; display: flex; align-items: center; gap: 8px;}
+        .missed-list li::before { content: "⚠️"; }
+        .missed-list li:last-child { border-bottom: none; }
+        .empty-state { color: var(--primary); font-style: italic; font-size: 14px;}
+
+        /* Zona Hari Ini */
+        .progress-bar { height: 8px; background: #eee; border-radius: 4px; margin-bottom: 20px; overflow: hidden;}
+        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: 0.3s; }
+        
         .habit-list { list-style: none; padding: 0; margin: 0; }
-        .habit-item {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 0; border-bottom: 1px solid #f0f0f0; gap: 10px;
-        }
-        .habit-item:last-child { border-bottom: none; }
-        
-        .habit-info {
-            display: flex; align-items: center; gap: 12px; flex: 1;
-        }
-        .habit-name { font-size: 16px; color: var(--text-muted); font-weight: 500; word-break: break-word;}
-        
-        /* Tombol Aksi */
-        .action-btns { display: flex; gap: 5px; }
-        .action-btns button {
-            background: none; border: none; cursor: pointer;
-            font-size: 16px; opacity: 0.6; transition: opacity 0.2s;
-        }
+        .habit-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .habit-info { display: flex; align-items: center; gap: 12px; }
+        input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary); }
+        .action-btns button { background: none; border: none; cursor: pointer; opacity: 0.5; }
         .action-btns button:hover { opacity: 1; }
-        
-        input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--primary-color); cursor: pointer; }
 
-        .btn-sync {
-            width: 100%; padding: 14px; margin-top: 25px;
-            background-color: #2196F3; color: white;
-            border: none; border-radius: 8px; font-weight: bold;
-            cursor: pointer; font-size: 16px; transition: background 0.3s;
-        }
-        .btn-sync:hover { background-color: #1976D2; }
+        .add-habit { display: flex; gap: 10px; margin-top: 15px; }
+        .add-habit input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+        .add-habit button { background: var(--primary); color: white; border: none; border-radius: 6px; padding: 8px 15px; cursor: pointer; }
+
+        /* Agenda Besok */
+        .agenda-input { display: flex; flex-direction: column; gap: 10px; }
+        .agenda-input textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; resize: vertical; min-height: 60px; font-family: inherit; box-sizing: border-box;}
+        .btn-agenda { background: #2196F3; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;}
+
+        /* Tombol Simpan Utama */
+        .btn-sync { background: var(--text-dark); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; text-align: center; margin-top: 10px; transition: 0.3s;}
+        .btn-sync:hover { background: #000; }
+        
+        /* Loading Overlay */
+        #loading { display: none; text-align: center; padding: 10px; color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Tracker Hari Ini</h2>
-    
-    <div class="progress-container">
-        <div class="progress-bar" id="progressBar"></div>
+<div class="dashboard">
+
+    <div id="loading">Memuat data dari server... ⏳</div>
+
+    <div class="card">
+        <h2>⏪ Evaluasi Kemarin</h2>
+        <div class="subtitle" id="dateYesterday"></div>
+        <ul class="missed-list" id="missedList">
+            </ul>
     </div>
 
-    <div class="add-habit-container">
-        <input type="text" id="newHabitInput" placeholder="Ketik habit baru...">
-        <button onclick="addHabit()">Tambah</button>
+    <div class="card">
+        <h2>🎯 Fokus Hari Ini</h2>
+        <div class="subtitle" id="dateToday"></div>
+        
+        <div id="todayAgendaContainer" style="display:none; background: #e3f2fd; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+            <strong style="color: #1976d2; font-size: 14px;">Agenda Khusus Hari Ini:</strong>
+            <ul id="todayAgendaList" style="margin: 5px 0 0; padding-left: 20px; font-size: 14px; color: #333;"></ul>
+        </div>
+
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        
+        <ul class="habit-list" id="habitList"></ul>
+
+        <div class="add-habit">
+            <input type="text" id="newHabitInput" placeholder="Tambah rutinitas...">
+            <button onclick="addHabit()">+</button>
+        </div>
     </div>
 
-    <ul class="habit-list" id="habitList"></ul>
+    <div class="card">
+        <h2>⏩ Catatan & Agenda Besok</h2>
+        <div class="agenda-input">
+            <textarea id="agendaTomorrow" placeholder="Tulis apa yang harus dilakukan besok..."></textarea>
+            <button class="btn-agenda" onclick="saveAgenda()">Simpan Agenda Besok</button>
+        </div>
+    </div>
 
-    <button class="btn-sync" id="btnSync" onclick="syncToSheet()">Simpan ke Spreadsheet</button>
+    <button class="btn-sync" id="btnSync" onclick="saveToday()">Simpan Rekap Hari Ini ke Database</button>
+
 </div>
 
 <script>
     // ======================================================================
-    // PASTE URL APPS SCRIPT ANDA DI ANTARA TANDA KUTIP DI BAWAH INI:
+    // PASTE URL APPS SCRIPT ANDA DI BAWAH INI:
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxmna0szVmBrWhMmznXkuq519TRzahIJDzBhrmEnM5b6g0GOEuzzuwmRpP5z_ndSb5UQ/exec"; 
     // ======================================================================
 
-    // Mengambil data dari memori HP. Jika kosong, pakai template default
-    let habits = JSON.parse(localStorage.getItem('habitDataObj')) || [
+    // Set Tanggal Tampilan
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const today = new Date();
+    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+    
+    document.getElementById('dateToday').innerText = today.toLocaleDateString('id-ID', options);
+    document.getElementById('dateYesterday').innerText = yesterday.toLocaleDateString('id-ID', options);
+
+    // Data Habit Lokal
+    let habits = JSON.parse(localStorage.getItem('myHabits')) || [
         { name: "Bangun Pagi", status: false },
-        { name: "Membaca Buku", status: false },
-        { name: "Olahraga", status: false }
+        { name: "Cek Data Center", status: false }
     ];
 
     const habitListEl = document.getElementById('habitList');
-    const progressBarEl = document.getElementById('progressBar');
-    const inputEl = document.getElementById('newHabitInput');
+    const progressFillEl = document.getElementById('progressFill');
 
-    // Menyimpan perubahan ke memori HP dan merender ulang tampilan
     function saveAndRender() {
-        localStorage.setItem('habitDataObj', JSON.stringify(habits));
+        localStorage.setItem('myHabits', JSON.stringify(habits));
         renderHabits();
     }
 
-    // Menampilkan daftar habit ke layar
     function renderHabits() {
         habitListEl.innerHTML = '';
         let completed = 0;
-
-        habits.forEach((habit, index) => {
-            if (habit.status) completed++;
-
-            const li = document.createElement('li');
-            li.className = 'habit-item';
-            li.innerHTML = `
-                <div class="habit-info">
-                    <input type="checkbox" onchange="toggleHabit(${index})" ${habit.status ? 'checked' : ''}>
-                    <span class="habit-name">${habit.name}</span>
-                </div>
-                <div class="action-btns">
-                    <button onclick="editHabit(${index})" title="Edit">✏️</button>
-                    <button onclick="deleteHabit(${index})" title="Hapus">🗑️</button>
-                </div>
+        habits.forEach((h, i) => {
+            if (h.status) completed++;
+            habitListEl.innerHTML += `
+                <li class="habit-item">
+                    <div class="habit-info">
+                        <input type="checkbox" onchange="toggleHabit(${i})" ${h.status ? 'checked' : ''}>
+                        <span>${h.name}</span>
+                    </div>
+                    <div class="action-btns">
+                        <button onclick="deleteHabit(${i})">🗑️</button>
+                    </div>
+                </li>
             `;
-            habitListEl.appendChild(li);
         });
-
-        // Update Progress Bar
-        const percentage = habits.length === 0 ? 0 : (completed / habits.length) * 100;
-        progressBarEl.style.width = percentage + '%';
+        progressFillEl.style.width = habits.length ? (completed / habits.length) * 100 + '%' : '0%';
     }
 
-    // FITUR CRUD
-    function toggleHabit(index) {
-        habits[index].status = !habits[index].status;
-        saveAndRender();
-    }
-
+    function toggleHabit(i) { habits[i].status = !habits[i].status; saveAndRender(); }
     function addHabit() {
-        const val = inputEl.value.trim();
-        if (val === "") return;
-        habits.push({ name: val, status: false });
-        inputEl.value = "";
-        saveAndRender();
+        const val = document.getElementById('newHabitInput').value.trim();
+        if (val) { habits.push({ name: val, status: false }); document.getElementById('newHabitInput').value = ""; saveAndRender(); }
+    }
+    function deleteHabit(i) {
+        if(confirm("Hapus tugas ini?")) { habits.splice(i, 1); saveAndRender(); }
     }
 
-    function editHabit(index) {
-        const newName = prompt("Ubah nama habit:", habits[index].name);
-        if (newName !== null && newName.trim() !== "") {
-            habits[index].name = newName.trim();
-            saveAndRender();
-        }
+    // MENGAMBIL DATA DARI SERVER SAAT DIBUKA
+    function fetchServerData() {
+        if(SCRIPT_URL.includes("PASTE_URL")) return; // Abaikan jika URL belum diganti
+        
+        document.getElementById('loading').style.display = 'block';
+        
+        fetch(SCRIPT_URL)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                
+                // Tampilkan tugas kemarin yang terlewat
+                const missedUl = document.getElementById('missedList');
+                if (data.kemarinBelumSelesai && data.kemarinBelumSelesai.length > 0) {
+                    missedUl.innerHTML = data.kemarinBelumSelesai.map(task => `<li>${task} (Belum selesai)</li>`).join('');
+                } else {
+                    missedUl.innerHTML = '<div class="empty-state">Luar biasa! Kemarin semua tugas selesai. 🎉</div>';
+                }
+
+                // Tampilkan agenda khusus untuk hari ini
+                const agendaContainer = document.getElementById('todayAgendaContainer');
+                const agendaUl = document.getElementById('todayAgendaList');
+                if (data.agendaHariIni && data.agendaHariIni.length > 0) {
+                    agendaContainer.style.display = 'block';
+                    agendaUl.innerHTML = data.agendaHariIni.map(task => `<li>${task}</li>`).join('');
+                }
+            })
+            .catch(err => {
+                document.getElementById('loading').innerText = 'Gagal memuat data server.';
+                console.error(err);
+            });
     }
 
-    function deleteHabit(index) {
-        if (confirm(`Yakin ingin menghapus habit "${habits[index].name}"?`)) {
-            habits.splice(index, 1);
-            saveAndRender();
-        }
-    }
-
-    // FITUR SINKRONISASI
-    function syncToSheet() {
-        if(SCRIPT_URL === "PASTE_URL_APPS_SCRIPT_ANDA_DI_SINI") {
-            alert("URL Apps Script belum dimasukkan di HTML!"); return;
-        }
-
+    // MENYIMPAN REKAP HARI INI
+    function saveToday() {
         const btn = document.getElementById('btnSync');
         btn.innerText = "Menyimpan...";
-        btn.style.backgroundColor = "#999";
+        
+        const payload = {
+            action: "saveToday",
+            data: habits
+        };
 
-        // Mengirimkan array objek langsung ke Apps Script
         fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(habits)
+            method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         }).then(() => {
-            alert("Mantap! Data & Nama Habit berhasil disinkronkan ke Spreadsheet!");
-            btn.innerText = "Simpan ke Spreadsheet";
-            btn.style.backgroundColor = "#2196F3";
-        }).catch(error => {
-            alert("Gagal menyimpan data.");
-            btn.innerText = "Coba Lagi";
-            btn.style.backgroundColor = "#f44336";
+            alert("Rekap hari ini masuk Database!");
+            btn.innerText = "Tersimpan ✓";
+            btn.style.background = "#4CAF50";
+            setTimeout(() => { btn.innerText = "Simpan Rekap Hari Ini ke Database"; btn.style.background = "var(--text-dark)"; }, 3000);
+            
+            // Opsional: Reset centang untuk besok
+            if(confirm("Apakah Anda ingin mereset semua centang untuk persiapan besok?")) {
+                habits.forEach(h => h.status = false);
+                saveAndRender();
+            }
         });
     }
 
-    // Render pertama kali saat web dibuka
+    // MENYIMPAN AGENDA BESOK
+    function saveAgenda() {
+        const text = document.getElementById('agendaTomorrow').value.trim();
+        if(!text) { alert("Isi agenda dulu!"); return; }
+        
+        const payload = { action: "saveTomorrow", agenda: text };
+
+        fetch(SCRIPT_URL, {
+            method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(() => {
+            alert("Agenda untuk besok berhasil dicatat!");
+            document.getElementById('agendaTomorrow').value = "";
+        });
+    }
+
     renderHabits();
+    fetchServerData(); // Panggil data dari server saat web dimuat
+
 </script>
 
 </body>
