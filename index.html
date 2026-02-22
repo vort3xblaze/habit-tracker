@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker 2026</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 { 
+            text-align: center; 
+            color: var(--text-main);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .progress-container {
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            height: 10px;
+            width: 100%;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .habit-list { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0;
+        }
+
+        .habit-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .habit-item:last-child { 
+            border-bottom: none; 
+        }
+
+        .habit-name { 
+            font-size: 16px; 
+            color: var(--text-muted); 
+            font-weight: 500;
+        }
+
+        /* Styling Custom Checkbox */
+        input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Tracker Hari Ini</h2>
+    
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <ul class="habit-list" id="habitList">
+        </ul>
+</div>
+
+<script>
+    // 1. Definisikan daftar habit (Bisa disesuaikan dengan isi Spreadsheet)
+    const habits = [
+        "Bangun Pagi (05:00)", 
+        "Olahraga 15 Menit", 
+        "Membaca 10 Halaman", 
+        "Minum Air 2L", 
+        "Belajar / Eksperimen Kode", 
+        "Ibadah Tepat Waktu",
+        "Tidur Sebelum Jam 23:00", 
+        "Merapikan Area Kerja", 
+        "Kurangi Screen Time", 
+        "Evaluasi Hari Ini"
+    ];
+
+    const habitListEl = document.getElementById('habitList');
+    const progressBarEl = document.getElementById('progressBar');
+
+    // 2. Fungsi untuk menghitung dan memperbarui bar persentase
+    function updateProgress() {
+        let completed = 0;
+        habits.forEach((_, index) => {
+            if (localStorage.getItem(`habit_${index}`) === 'true') {
+                completed++;
+            }
+        });
+        const percentage = (completed / habits.length) * 100;
+        progressBarEl.style.width = percentage + '%';
+    }
+
+    // 3. Fungsi untuk memuat antarmuka habit ke layar
+    function loadHabits() {
+        habitListEl.innerHTML = ''; // Bersihkan list sebelum memuat ulang
+        
+        habits.forEach((habit, index) => {
+            // Cek memori HP/Browser apakah sebelumnya sudah dicentang
+            const isChecked = localStorage.getItem(`habit_${index}`) === 'true';
+            
+            const li = document.createElement('li');
+            li.className = 'habit-item';
+            li.innerHTML = `
+                <span class="habit-name">${habit}</span>
+                <input type="checkbox" onchange="toggleHabit(${index}, this)" ${isChecked ? 'checked' : ''}>
+            `;
+            habitListEl.appendChild(li);
+        });
+        
+        updateProgress(); // Perbarui progress bar saat pertama kali dimuat
+    }
+
+    // 4. Fungsi yang berjalan setiap kali checkbox diklik
+    function toggleHabit(index, checkbox) {
+        // Simpan status (true/false) ke memori lokal
+        localStorage.setItem(`habit_${index}`, checkbox.checked);
+        updateProgress(); // Perbarui progress bar secara real-time
+    }
+
+    // Jalankan aplikasi
+    loadHabits();
+</script>
+
+</body>
+</html>
