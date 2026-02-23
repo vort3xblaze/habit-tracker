@@ -39,7 +39,7 @@
         .card { background: var(--card); padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         h2 { margin: 0 0 15px 0; font-size: 17px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
         
-        /* KOMPONEN LAMA DAILY (EVALUASI & BESOK) */
+        /* KOMPONEN DAILY */
         .missed-list { list-style: none; padding: 0; margin: 0; }
         .missed-list li { padding: 10px 0; border-bottom: 1px dashed var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 14px;}
         .task-name-missed { color: var(--warning); font-weight: 500; }
@@ -47,7 +47,7 @@
         .agenda-input textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; resize: vertical; min-height: 70px; background: var(--bg); color: var(--text-dark); box-sizing: border-box; margin-bottom: 10px;}
         .btn-agenda { background: var(--blue); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;}
         
-        /* HABIT LIST */
+        /* HABIT LIST & AGENDA KHUSUS */
         .progress-bar { height: 8px; background: var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden;}
         .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s; }
         .habit-list { list-style: none; padding: 0; margin: 0; }
@@ -112,9 +112,10 @@
 
         <div class="card">
             <h2>🎯 Fokus Rutinitas Hari Ini</h2>
-            <div id="todayAgendaContainer" style="display:none; background: rgba(33, 150, 243, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--blue);">
-                <strong style="color: var(--blue); font-size: 13px;">📌 Agenda Khusus:</strong>
-                <ul id="todayAgendaList" style="margin: 5px 0 0; padding-left: 20px; font-size: 14px;"></ul>
+            
+            <div id="todayAgendaContainer" style="display:none; background: rgba(33, 150, 243, 0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid var(--blue);">
+                <strong style="color: var(--blue); font-size: 14px; display:flex; align-items:center; gap:5px;">📌 Agenda Khusus:</strong>
+                <ul class="habit-list" id="todayAgendaList" style="margin-top: 10px;"></ul>
             </div>
 
             <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
@@ -208,18 +209,70 @@
         document.getElementById('darkModeBtn').innerText = isDark ? '☀️' : '🌙';
     }
 
-    // 2. SWITCH TAB (UI BARU)
+    // 2. SWITCH TAB
     function switchTab(tabName) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        
         document.getElementById(`view-${tabName}`).classList.add('active');
         document.getElementById(`tab-${tabName}`).classList.add('active');
-        
         if(tabName === 'event') updateTimeline();
     }
 
-    // 3. LOGIKA DAILY (SPREADSHEET + RUTINITAS LOKAL)
+    // ======================================================================
+    // 3. LOGIKA AGENDA KHUSUS (BARU: INTERAKTIF)
+    // ======================================================================
+    let todayAgendas = JSON.parse(localStorage.getItem('myTodayAgendasPro')) || [];
+
+    function saveAndRenderAgendas() {
+        localStorage.setItem('myTodayAgendasPro', JSON.stringify(todayAgendas));
+        const container = document.getElementById('todayAgendaContainer');
+        const listEl = document.getElementById('todayAgendaList');
+        
+        if (todayAgendas.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.style.display = 'block';
+        listEl.innerHTML = '';
+        todayAgendas.forEach((a, i) => {
+            listEl.innerHTML += `
+                <li class="habit-item" style="border-bottom: 1px dashed rgba(33,150,243,0.3); padding: 8px 0;">
+                    <div class="habit-info">
+                        <input type="checkbox" onchange="toggleAgenda(${i})" ${a.status ? 'checked' : ''}>
+                        <span style="font-weight: 500; font-size: 14px; text-decoration: ${a.status ? 'line-through' : 'none'}; opacity: ${a.status ? '0.6' : '1'}; color: var(--text-dark);">${a.name}</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button style="background:none; border:none; cursor:pointer; font-size:14px; padding:0;" onclick="editAgenda(${i})" title="Edit">✏️</button>
+                        <button style="background:none; border:none; cursor:pointer; font-size:14px; padding:0;" onclick="snoozeAgenda(${i})" title="Undur Besok">➡️</button>
+                    </div>
+                </li>
+            `;
+        });
+    }
+
+    function toggleAgenda(i) { todayAgendas[i].status = !todayAgendas[i].status; saveAndRenderAgendas(); }
+    
+    function editAgenda(i) {
+        let newName = prompt("Edit nama agenda khusus ini:", todayAgendas[i].name);
+        if(newName && newName.trim() !== "") {
+            todayAgendas[i].name = newName.trim();
+            saveAndRenderAgendas();
+        }
+    }
+
+    function snoozeAgenda(i) {
+        const taskName = todayAgendas[i].name;
+        const txt = document.getElementById('agendaTomorrow');
+        txt.value = txt.value ? txt.value + '\n- ' + taskName : '- ' + taskName;
+        todayAgendas.splice(i, 1); // Hapus dari hari ini
+        saveAndRenderAgendas();
+        alert(`Agenda "${taskName}" berhasil diundur dan dipindah ke draf Catatan Besok!`);
+    }
+
+    // ======================================================================
+    // 4. LOGIKA HABIT & SERVER
+    // ======================================================================
     let habits = JSON.parse(localStorage.getItem('myHabitsFinal')) || [];
     const tagColors = { "Pondok": "#4CAF50", "Angkatan": "#2196F3", "Pribadi": "#FF9800", "Lainnya": "#9E9E9E" };
 
@@ -229,7 +282,6 @@
         const habitListEl = document.getElementById('habitList');
         habitListEl.innerHTML = '';
         let completed = 0;
-
         habits.forEach((h, i) => {
             if (h.status) completed++;
             habitListEl.innerHTML += `
@@ -256,9 +308,8 @@
     }
     function deleteHabit(i) { if(confirm("Hapus rutinitas?")) { habits.splice(i, 1); saveAndRenderHabits(); } }
 
-    // FITUR LAMA: AMBIL DATA DARI SPREADSHEET
     function fetchServerData() {
-        if(SCRIPT_URL.includes("PASTE_URL")) { document.getElementById('missedList').innerHTML = '<li>URL Script belum diganti!</li>'; return; }
+        if(SCRIPT_URL.includes("PASTE_URL")) { document.getElementById('missedList').innerHTML = '<li style="color:red;">URL Script belum diganti!</li>'; return; }
         document.getElementById('loading').style.display = 'block';
         fetch(SCRIPT_URL).then(res => res.json()).then(data => {
             document.getElementById('loading').style.display = 'none';
@@ -268,14 +319,22 @@
             } else {
                 missedUl.innerHTML = '<li style="color: var(--primary); font-style: italic;">Luar biasa! Kemarin semua tuntas. 🎉</li>';
             }
+            
+            // Masukkan data Agenda Khusus ke array lokal agar interaktif
             if (data.agendaHariIni && data.agendaHariIni.length > 0) {
-                document.getElementById('todayAgendaContainer').style.display = 'block';
-                document.getElementById('todayAgendaList').innerHTML = data.agendaHariIni.map(task => `<li>${task}</li>`).join('');
+                data.agendaHariIni.forEach(task => {
+                    // Cek duplikasi agar tidak bertumpuk jika di-refresh
+                    if (!todayAgendas.find(a => a.originalName === task || a.name === task)) {
+                        todayAgendas.push({ name: task, originalName: task, status: false, tag: "Agenda" });
+                    }
+                });
+                saveAndRenderAgendas();
             }
-}).catch(err => { 
+        }).catch(err => { 
             document.getElementById('loading').style.display = 'none'; 
-            document.getElementById('missedList').innerHTML = '<li style="color: red;">Gagal terhubung ke Database. Cek koneksi / URL Script.</li>';
-        });    }
+            document.getElementById('missedList').innerHTML = '<li style="color: red;">Gagal memuat data dari Database.</li>';
+        });
+    }
 
     window.snoozeTask = function(taskName) {
         const txt = document.getElementById('agendaTomorrow');
@@ -286,8 +345,23 @@
     function saveToday() {
         if(SCRIPT_URL.includes("PASTE_URL")) return alert("Ganti URL Apps Script!");
         const btn = document.getElementById('btnSync'); btn.innerText = "Menyimpan... ⏳";
-        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: "saveToday", data: habits }) })
-        .then(() => { alert("Tersimpan!"); btn.innerText = "Tersimpan ✓"; setTimeout(() => { btn.innerText = "Simpan Rekap Harian"; }, 3000); });
+        
+        // Gabungkan Habit dan Agenda Khusus untuk dikirim ke Database
+        const allDataToSave = [...habits, ...todayAgendas];
+
+        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: "saveToday", data: allDataToSave }) })
+        .then(() => { 
+            alert("Tersimpan di Database!"); 
+            btn.innerText = "Tersimpan ✓"; 
+            setTimeout(() => { btn.innerText = "Simpan Rekap Harian"; }, 3000); 
+
+            if(confirm("Apakah Anda ingin mereset semua rutinitas untuk persiapan besok?")) {
+                habits.forEach(h => h.status = false);
+                saveAndRenderHabits();
+                todayAgendas = []; // Agenda khusus hari ini dibersihkan
+                saveAndRenderAgendas();
+            }
+        });
     }
 
     function saveAgenda() {
@@ -299,9 +373,8 @@
     }
 
     // ======================================================================
-    // 4. LOGIKA EVENT DINAMIS (CRUD)
+    // 5. LOGIKA EVENT DINAMIS (RUNDOWN)
     // ======================================================================
-    // Template awal jadwal hari ini jika belum ada data di lokal
     const defaultEvents = [
         { start: "14:00", end: "15:00", title: "Kumpul Wali Kelas", desc: "Rapat asrama", icon: "👥" },
         { start: "15:30", end: "17:30", title: "Artos Mall", desc: "Jalan santai", icon: "🛍️" },
@@ -311,7 +384,6 @@
     let events = JSON.parse(localStorage.getItem('myEventsPro')) || defaultEvents;
 
     function saveAndRenderEvents() {
-        // Urutkan jadwal berdasarkan jam mulai secara otomatis
         events.sort((a, b) => a.start.localeCompare(b.start));
         localStorage.setItem('myEventsPro', JSON.stringify(events));
         updateTimeline();
@@ -320,14 +392,13 @@
     function updateTimeline() {
         const timelineEl = document.getElementById('eventTimeline');
         timelineEl.innerHTML = '';
-        if(events.length === 0) { timelineEl.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Belum ada jadwal event. Tambahkan di bawah.</p>'; return; }
+        if(events.length === 0) { timelineEl.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Belum ada jadwal event.</p>'; return; }
 
         const now = new Date();
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
         events.forEach((ev, i) => {
-            const [sh, sm] = ev.start.split(':').map(Number);
-            const [eh, em] = ev.end.split(':').map(Number);
+            const [sh, sm] = ev.start.split(':').map(Number); const [eh, em] = ev.end.split(':').map(Number);
             const startMins = sh * 60 + sm; const endMins = eh * 60 + em;
 
             let statusClass = ''; let statusText = '';
@@ -354,7 +425,6 @@
         });
     }
 
-    // CRUD: Simpan (Tambah / Update) Event
     function saveEvent() {
         const start = document.getElementById('evStart').value;
         const end = document.getElementById('evEnd').value;
@@ -364,37 +434,27 @@
         const editIndex = parseInt(document.getElementById('evEditIndex').value);
 
         if(!start || !end || !title) return alert("Jam mulai, selesai, dan Judul wajib diisi!");
-
         const newEvent = { start, end, title, desc, icon };
-
         if(editIndex > -1) { events[editIndex] = newEvent; document.getElementById('btnSaveEvent').innerText = "Tambah Jadwal"; } 
         else { events.push(newEvent); }
 
         document.getElementById('evStart').value = ''; document.getElementById('evEnd').value = '';
         document.getElementById('evTitle').value = ''; document.getElementById('evDesc').value = '';
         document.getElementById('evIcon').value = ''; document.getElementById('evEditIndex').value = '-1';
-        
         saveAndRenderEvents();
     }
 
-    // CRUD: Hapus Event
-    function deleteEvent(index) {
-        if(confirm(`Hapus jadwal "${events[index].title}"?`)) { events.splice(index, 1); saveAndRenderEvents(); }
-    }
+    function deleteEvent(index) { if(confirm(`Hapus jadwal "${events[index].title}"?`)) { events.splice(index, 1); saveAndRenderEvents(); } }
 
-    // CRUD: Edit Event (Memindahkan data ke form)
     function editEvent(index) {
         const ev = events[index];
         document.getElementById('evStart').value = ev.start; document.getElementById('evEnd').value = ev.end;
         document.getElementById('evTitle').value = ev.title; document.getElementById('evDesc').value = ev.desc || '';
         document.getElementById('evIcon').value = ev.icon || ''; document.getElementById('evEditIndex').value = index;
         document.getElementById('btnSaveEvent').innerText = "Simpan Perubahan";
-        
-        // Scroll otomatis ke bawah agar form terlihat
         document.querySelector('.event-form').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Hitung Mundur Event
     function updateCountdown() {
         if(events.length === 0) return;
         const now = new Date(); const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -403,21 +463,13 @@
         for (let ev of events) {
             const [sh, sm] = ev.start.split(':').map(Number); const [eh, em] = ev.end.split(':').map(Number);
             const startMins = sh * 60 + sm; const endMins = eh * 60 + em;
-
-            if (currentMinutes >= startMins && currentMinutes < endMins) {
-                targetEvent = ev; targetTimeMins = endMins; isOngoing = true; break;
-            } else if (currentMinutes < startMins) {
-                targetEvent = ev; targetTimeMins = startMins; break;
-            }
+            if (currentMinutes >= startMins && currentMinutes < endMins) { targetEvent = ev; targetTimeMins = endMins; isOngoing = true; break; } 
+            else if (currentMinutes < startMins) { targetEvent = ev; targetTimeMins = startMins; break; }
         }
 
-        const cdLabel = document.getElementById('countdownLabel');
-        const cdTimer = document.getElementById('countdownTimer');
-        const nextName = document.getElementById('nextEventName');
-
+        const cdLabel = document.getElementById('countdownLabel'); const cdTimer = document.getElementById('countdownTimer'); const nextName = document.getElementById('nextEventName');
         if (targetEvent) {
-            let diffMins = targetTimeMins - currentMinutes;
-            let h = Math.floor(diffMins / 60); let m = diffMins % 60; let s = 59 - now.getSeconds();
+            let diffMins = targetTimeMins - currentMinutes; let h = Math.floor(diffMins / 60); let m = diffMins % 60; let s = 59 - now.getSeconds();
             cdLabel.innerText = isOngoing ? "Sisa Waktu Agenda Ini:" : "Menuju Agenda Berikutnya:";
             cdTimer.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             nextName.innerText = isOngoing ? `Selesai ${targetEvent.title}` : `Mulai ${targetEvent.title}`;
@@ -428,8 +480,9 @@
 
     // Inisialisasi
     renderHabits();
+    saveAndRenderAgendas(); // Render struktur lokal Agenda Khusus
     updateTimeline();
-    fetchServerData();
+    fetchServerData(); // Tarik data baru dan gabungkan dengan lokal
     setInterval(updateCountdown, 1000);
     setInterval(updateTimeline, 60000);
 
