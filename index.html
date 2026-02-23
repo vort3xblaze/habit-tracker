@@ -183,7 +183,7 @@
 <script>
     // ======================================================================
     // PASTE URL APPS SCRIPT ANDA DI ANTARA TANDA KUTIP DI BAWAH INI:
-    const SCRIPT_URL = "https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbzxmna0szVmBrWhMmznXkuq519TRzahIJDzBhrmEnM5b6g0GOEuzzuwmRpP5z_ndSb5UQ/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxmna0szVmBrWhMmznXkuq519TRzahIJDzBhrmEnM5b6g0GOEuzzuwmRpP5z_ndSb5UQ/exec"; 
     // ======================================================================
 
     // 1. PENGATURAN AWAL & TEMA
@@ -272,8 +272,10 @@
                 document.getElementById('todayAgendaContainer').style.display = 'block';
                 document.getElementById('todayAgendaList').innerHTML = data.agendaHariIni.map(task => `<li>${task}</li>`).join('');
             }
-        }).catch(err => { document.getElementById('loading').style.display = 'none'; });
-    }
+}).catch(err => { 
+            document.getElementById('loading').style.display = 'none'; 
+            document.getElementById('missedList').innerHTML = '<li style="color: red;">Gagal terhubung ke Database. Cek koneksi / URL Script.</li>';
+        });    }
 
     window.snoozeTask = function(taskName) {
         const txt = document.getElementById('agendaTomorrow');
