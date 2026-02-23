@@ -8,90 +8,46 @@
     <meta http-equiv="Expires" content="0">
     
     <title>Personal Dashboard Pro</title>
-    
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2381C784'/><stop offset='100%' stop-color='%232E7D32'/></linearGradient></defs><rect width='100' height='100' rx='24' fill='url(%23g)'/><path d='M28 53 l15 15 l30 -30' fill='none' stroke='%23ffffff' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/></svg>">
     
     <style>
         :root {
-            --primary: #4CAF50; --primary-hover: #45a049;
-            --bg: #f4f7f6; --card: #ffffff;
+            --primary: #4CAF50; --bg: #f4f7f6; --card: #ffffff;
             --text-dark: #333333; --text-muted: #666666; 
             --warning: #ff9800; --border: #eeeeee; --blue: #2196F3;
         }
         
-        body.dark-mode {
-            --bg: #121212; --card: #1e1e1e;
-            --text-dark: #f0f0f0; --text-muted: #aaaaaa; 
-            --border: #333333;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg); color: var(--text-dark);
-            margin: 0; padding: 20px 20px 80px 20px; /* Padding bawah untuk Bottom Nav */
-            display: flex; flex-direction: column; align-items: center;
-            transition: 0.3s;
-        }
-
+        body.dark-mode { --bg: #121212; --card: #1e1e1e; --text-dark: #f0f0f0; --text-muted: #aaaaaa; --border: #333333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text-dark); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
         .dashboard { width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 20px; }
         
-        /* Navigasi Bawah (Bottom Nav) */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: var(--card); box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            display: flex; justify-content: space-around; padding: 10px 0;
-            z-index: 1000; border-top: 1px solid var(--border);
-        }
-        .nav-item {
-            flex: 1; text-align: center; color: var(--text-muted);
-            font-size: 12px; font-weight: bold; cursor: pointer;
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
-            padding: 8px 0; transition: 0.3s;
-        }
-        .nav-item.active { color: var(--primary); }
-        .nav-icon { font-size: 22px; }
+        /* HEADER & TAB MENU */
+        .header-nav { display: flex; justify-content: space-between; align-items: center; }
+        .greeting-text { font-size: 22px; font-weight: bold; margin: 0; }
+        .quote-text { font-size: 13px; color: var(--text-muted); font-style: italic; margin-top: 5px; }
+        .btn-icon { background: var(--card); border: 1px solid var(--border); color: var(--text-dark); padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+        
+        .tab-menu { display: flex; background: var(--border); padding: 5px; border-radius: 12px; margin-top: 5px; }
+        .tab-btn { flex: 1; text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; color: var(--text-muted); cursor: pointer; transition: 0.3s; }
+        .tab-btn.active { background: var(--card); color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-        /* Pengatur Tampilan Halaman (Tab) */
         .view-section { display: none; flex-direction: column; gap: 20px; animation: fadeIn 0.3s; }
         .view-section.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* HEADER */
-        .header-nav { display: flex; justify-content: space-between; align-items: center; }
-        .greeting-text { font-size: 22px; font-weight: bold; margin: 0; }
-        .quote-text { font-size: 13px; color: var(--text-muted); font-style: italic; margin-top: 5px; }
-        .btn-icon { background: var(--card); border: 1px solid var(--border); color: var(--text-dark); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; }
-
         /* KARTU UMUM */
         .card { background: var(--card); padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h2 { margin: 0 0 15px 0; font-size: 18px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
+        h2 { margin: 0 0 15px 0; font-size: 17px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
         
-        /* TAMPILAN EVENT RUNDOWN */
-        .countdown-box { background: var(--blue); color: white; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);}
-        .countdown-time { font-size: 24px; margin: 5px 0; }
+        /* KOMPONEN LAMA DAILY (EVALUASI & BESOK) */
+        .missed-list { list-style: none; padding: 0; margin: 0; }
+        .missed-list li { padding: 10px 0; border-bottom: 1px dashed var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 14px;}
+        .task-name-missed { color: var(--warning); font-weight: 500; }
+        .btn-snooze { background: #e3f2fd; color: #1976d2; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .agenda-input textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; resize: vertical; min-height: 70px; background: var(--bg); color: var(--text-dark); box-sizing: border-box; margin-bottom: 10px;}
+        .btn-agenda { background: var(--blue); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;}
         
-        .timeline { position: relative; padding-left: 25px; margin-top: 10px; }
-        .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--border); }
-        
-        .event-item { position: relative; margin-bottom: 20px; padding: 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); transition: 0.3s;}
-        .event-item::before {
-            content: ''; position: absolute; left: -22px; top: 18px; width: 10px; height: 10px;
-            border-radius: 50%; background: var(--text-muted); border: 2px solid var(--card);
-        }
-        .event-item.active { border-left: 4px solid var(--primary); background: rgba(76, 175, 80, 0.05); }
-        .event-item.active::before { background: var(--primary); box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2); }
-        .event-item.past { opacity: 0.6; }
-        .event-item.past::before { background: var(--border); }
-
-        .event-time { font-size: 12px; color: var(--primary); font-weight: bold; margin-bottom: 4px; }
-        .event-title { font-size: 15px; font-weight: bold; margin: 0 0 4px 0; display: flex; align-items: center; gap: 6px;}
-        .event-desc { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.4; }
-        
-        .event-action { margin-top: 10px; display: flex; gap: 8px;}
-        .btn-mini { background: var(--card); border: 1px solid var(--border); color: var(--text-dark); padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 500;}
-        .btn-mini.map { color: var(--blue); border-color: rgba(33, 150, 243, 0.3); }
-
-        /* CSS DAILY (Yang Lama) */
+        /* HABIT LIST */
         .progress-bar { height: 8px; background: var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden;}
         .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s; }
         .habit-list { list-style: none; padding: 0; margin: 0; }
@@ -99,12 +55,32 @@
         .habit-info { display: flex; align-items: center; gap: 12px; flex: 1; }
         input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--primary); cursor: pointer; }
         .tag-badge { font-size: 11px; padding: 3px 6px; border-radius: 4px; font-weight: bold; }
-        .completed-text { text-decoration: line-through; color: var(--text-muted); }
-        .add-habit { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
+        .add-habit, .event-form { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; background: var(--bg); padding: 10px; border-radius: 8px;}
         .input-group { display: flex; gap: 8px; }
-        .add-habit input, .add-habit select { padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text-dark); flex: 1; outline: none;}
-        .btn-add { background: var(--primary); color: white; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; }
-        .btn-sync { background: var(--text-dark); color: var(--card); border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px;}
+        input[type="text"], input[type="time"], select { padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text-dark); flex: 1; outline: none;}
+        .btn-add { background: var(--primary); color: white; border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; cursor: pointer;}
+        .btn-sync { background: var(--text-dark); color: var(--card); border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px; cursor: pointer;}
+
+        /* EVENT RUNDOWN */
+        .countdown-box { background: var(--blue); color: white; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; margin-bottom: 10px;}
+        .countdown-time { font-size: 26px; margin: 5px 0; }
+        
+        .timeline { position: relative; padding-left: 20px; margin-top: 10px; }
+        .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+        
+        .event-item { position: relative; margin-bottom: 15px; padding: 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); transition: 0.3s;}
+        .event-item::before { content: ''; position: absolute; left: -19px; top: 18px; width: 10px; height: 10px; border-radius: 50%; background: var(--border); border: 2px solid var(--card); }
+        .event-item.active { border-left: 4px solid var(--primary); background: rgba(76, 175, 80, 0.05); }
+        .event-item.active::before { background: var(--primary); box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2); }
+        .event-item.past { opacity: 0.5; }
+
+        .event-header { display: flex; justify-content: space-between; align-items: flex-start;}
+        .event-time { font-size: 12px; color: var(--primary); font-weight: bold; margin-bottom: 4px; }
+        .event-title { font-size: 15px; font-weight: bold; margin: 0 0 4px 0;}
+        .event-desc { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.4; }
+        .event-actions button { background: none; border: none; font-size: 14px; cursor: pointer; padding: 2px; }
+        
+        #loading { display: none; text-align: center; padding: 10px; color: var(--primary); font-weight: bold; font-size: 14px;}
     </style>
 </head>
 <body>
@@ -118,14 +94,35 @@
         <button class="btn-icon" onclick="toggleDarkMode()" id="darkModeBtn">🌙</button>
     </div>
 
+    <div class="tab-menu">
+        <div class="tab-btn active" id="tab-daily" onclick="switchTab('daily')">🎯 Mode Daily</div>
+        <div class="tab-btn" id="tab-event" onclick="switchTab('event')">📍 Mode Event</div>
+    </div>
+
+    <div id="loading">Sinkronisasi Database... ⏳</div>
+
     <div id="view-daily" class="view-section active">
+        
         <div class="card">
-            <h2>🎯 Rutinitas (Daily)</h2>
+            <h2>⏪ Evaluasi Kemarin</h2>
+            <ul class="missed-list" id="missedList">
+                <li style="color: var(--text-muted); font-size: 13px;">Sedang memuat data...</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>🎯 Fokus Rutinitas Hari Ini</h2>
+            <div id="todayAgendaContainer" style="display:none; background: rgba(33, 150, 243, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--blue);">
+                <strong style="color: var(--blue); font-size: 13px;">📌 Agenda Khusus:</strong>
+                <ul id="todayAgendaList" style="margin: 5px 0 0; padding-left: 20px; font-size: 14px;"></ul>
+            </div>
+
             <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
             <ul class="habit-list" id="habitList"></ul>
+            
             <div class="add-habit">
                 <div class="input-group">
-                    <input type="text" id="newHabitInput" placeholder="Ketik rutinitas...">
+                    <input type="text" id="newHabitInput" placeholder="Ketik rutinitas baru...">
                 </div>
                 <div class="input-group">
                     <select id="tagInput">
@@ -138,7 +135,16 @@
                 </div>
             </div>
         </div>
-        <button class="btn-sync" id="btnSync" onclick="saveToday()">Simpan Rutinitas ke Database</button>
+
+        <div class="card">
+            <h2>⏩ Catatan & Agenda Besok</h2>
+            <div class="agenda-input">
+                <textarea id="agendaTomorrow" placeholder="Tulis hal penting untuk besok..."></textarea>
+                <button class="btn-agenda" onclick="saveAgenda()">Simpan ke Database</button>
+            </div>
+        </div>
+
+        <button class="btn-sync" id="btnSync" onclick="saveToday()">Simpan Rekap Harian</button>
     </div>
 
     <div id="view-event" class="view-section">
@@ -149,24 +155,30 @@
         </div>
 
         <div class="card">
-            <h2>📍 Rundown Hari Ini</h2>
-            <div class="timeline" id="eventTimeline">
+            <h2>📍 Rundown & Timeline</h2>
+            <div class="timeline" id="eventTimeline"></div>
+        </div>
+
+        <div class="card">
+            <h2>⚙️ Atur Jadwal Event</h2>
+            <div class="event-form">
+                <div class="input-group">
+                    <input type="time" id="evStart" required>
+                    <span style="display:flex; align-items:center;">-</span>
+                    <input type="time" id="evEnd" required>
                 </div>
+                <div class="input-group">
+                    <input type="text" id="evIcon" placeholder="Ikon (misal: ☕)" style="width: 60px; flex: none;">
+                    <input type="text" id="evTitle" placeholder="Judul Agenda" required>
+                </div>
+                <input type="text" id="evDesc" placeholder="Keterangan / Deskripsi detail...">
+                <button class="btn-add" onclick="saveEvent()" id="btnSaveEvent" style="width: 100%;">Tambah Jadwal</button>
+                <input type="hidden" id="evEditIndex" value="-1">
+            </div>
         </div>
     </div>
 
 </div>
-
-<nav class="bottom-nav">
-    <div class="nav-item active" id="nav-daily" onclick="switchTab('daily')">
-        <div class="nav-icon">🎯</div>
-        <div>Daily</div>
-    </div>
-    <div class="nav-item" id="nav-event" onclick="switchTab('event')">
-        <div class="nav-icon">📍</div>
-        <div>Event</div>
-    </div>
-</nav>
 
 <script>
     // ======================================================================
@@ -196,25 +208,22 @@
         document.getElementById('darkModeBtn').innerText = isDark ? '☀️' : '🌙';
     }
 
-    // 2. NAVIGASI TAB BAWAH
+    // 2. SWITCH TAB (UI BARU)
     function switchTab(tabName) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         
         document.getElementById(`view-${tabName}`).classList.add('active');
-        document.getElementById(`nav-${tabName}`).classList.add('active');
+        document.getElementById(`tab-${tabName}`).classList.add('active');
         
-        if(tabName === 'event') updateTimeline(); // Refresh timeline saat tab event dibuka
+        if(tabName === 'event') updateTimeline();
     }
 
-    // 3. LOGIKA DAILY (RUTINITAS)
-    let habits = JSON.parse(localStorage.getItem('myHabitsFinal')) || [
-        { name: "Pantau kegiatan anak-anak", status: false, tag: "Pondok", color: "#4CAF50" },
-        { name: "Progres skripsi", status: false, tag: "Pribadi", color: "#FF9800" }
-    ];
+    // 3. LOGIKA DAILY (SPREADSHEET + RUTINITAS LOKAL)
+    let habits = JSON.parse(localStorage.getItem('myHabitsFinal')) || [];
     const tagColors = { "Pondok": "#4CAF50", "Angkatan": "#2196F3", "Pribadi": "#FF9800", "Lainnya": "#9E9E9E" };
 
-    function saveAndRender() { localStorage.setItem('myHabitsFinal', JSON.stringify(habits)); renderHabits(); }
+    function saveAndRenderHabits() { localStorage.setItem('myHabitsFinal', JSON.stringify(habits)); renderHabits(); }
 
     function renderHabits() {
         const habitListEl = document.getElementById('habitList');
@@ -223,13 +232,12 @@
 
         habits.forEach((h, i) => {
             if (h.status) completed++;
-            const textClass = h.status ? 'completed-text' : '';
             habitListEl.innerHTML += `
                 <li class="habit-item">
                     <div class="habit-info">
                         <input type="checkbox" onchange="toggleHabit(${i})" ${h.status ? 'checked' : ''}>
                         <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <span class="${textClass}" style="font-weight: 500;">${h.name}</span>
+                            <span style="font-weight: 500; text-decoration: ${h.status ? 'line-through' : 'none'}; opacity: ${h.status ? '0.6' : '1'};">${h.name}</span>
                             <span class="tag-badge" style="background: ${h.color}20; color: ${h.color}; width: fit-content;">${h.tag}</span>
                         </div>
                     </div>
@@ -240,99 +248,163 @@
         document.getElementById('progressFill').style.width = habits.length ? (completed / habits.length) * 100 + '%' : '0%';
     }
 
-    function toggleHabit(i) { habits[i].status = !habits[i].status; saveAndRender(); }
+    function toggleHabit(i) { habits[i].status = !habits[i].status; saveAndRenderHabits(); }
     function addHabit() {
         const name = document.getElementById('newHabitInput').value.trim();
         const tag = document.getElementById('tagInput').value;
-        if (name) { habits.push({ name: name, status: false, tag: tag, color: tagColors[tag] }); document.getElementById('newHabitInput').value = ""; saveAndRender(); }
+        if (name) { habits.push({ name: name, status: false, tag: tag, color: tagColors[tag] }); document.getElementById('newHabitInput').value = ""; saveAndRenderHabits(); }
     }
-    function deleteHabit(i) { if(confirm("Hapus?")) { habits.splice(i, 1); saveAndRender(); } }
+    function deleteHabit(i) { if(confirm("Hapus rutinitas?")) { habits.splice(i, 1); saveAndRenderHabits(); } }
+
+    // FITUR LAMA: AMBIL DATA DARI SPREADSHEET
+    function fetchServerData() {
+        if(SCRIPT_URL.includes("PASTE_URL")) { document.getElementById('missedList').innerHTML = '<li>URL Script belum diganti!</li>'; return; }
+        document.getElementById('loading').style.display = 'block';
+        fetch(SCRIPT_URL).then(res => res.json()).then(data => {
+            document.getElementById('loading').style.display = 'none';
+            const missedUl = document.getElementById('missedList');
+            if (data.kemarinBelumSelesai && data.kemarinBelumSelesai.length > 0) {
+                missedUl.innerHTML = data.kemarinBelumSelesai.map(task => `<li><span class="task-name-missed">⚠️ ${task}</span><button class="btn-snooze" onclick="snoozeTask('${task}')">Tunda ➡️</button></li>`).join('');
+            } else {
+                missedUl.innerHTML = '<li style="color: var(--primary); font-style: italic;">Luar biasa! Kemarin semua tuntas. 🎉</li>';
+            }
+            if (data.agendaHariIni && data.agendaHariIni.length > 0) {
+                document.getElementById('todayAgendaContainer').style.display = 'block';
+                document.getElementById('todayAgendaList').innerHTML = data.agendaHariIni.map(task => `<li>${task}</li>`).join('');
+            }
+        }).catch(err => { document.getElementById('loading').style.display = 'none'; });
+    }
+
+    window.snoozeTask = function(taskName) {
+        const txt = document.getElementById('agendaTomorrow');
+        txt.value = txt.value ? txt.value + '\n- Lanjutan: ' + taskName : '- Lanjutan: ' + taskName;
+        alert(`"${taskName}" dipindah ke draf Besok. Klik 'Simpan ke Database' nanti.`);
+    }
 
     function saveToday() {
-        if(SCRIPT_URL.includes("PASTE_URL")) { alert("Ganti URL Apps Script dulu!"); return; }
+        if(SCRIPT_URL.includes("PASTE_URL")) return alert("Ganti URL Apps Script!");
         const btn = document.getElementById('btnSync'); btn.innerText = "Menyimpan... ⏳";
         fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: "saveToday", data: habits }) })
-        .then(() => {
-            alert("Tersimpan!"); btn.innerText = "Tersimpan ✓";
-            setTimeout(() => { btn.innerText = "Simpan Rutinitas ke Database"; }, 3000);
-        });
+        .then(() => { alert("Tersimpan!"); btn.innerText = "Tersimpan ✓"; setTimeout(() => { btn.innerText = "Simpan Rekap Harian"; }, 3000); });
+    }
+
+    function saveAgenda() {
+        const text = document.getElementById('agendaTomorrow').value.trim();
+        if(!text) return alert("Isi agenda dulu!");
+        const btn = document.querySelector('.btn-agenda'); btn.innerText = "Menyimpan... ⏳";
+        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: "saveTomorrow", agenda: text }) })
+        .then(() => { alert("Agenda besok dicatat!"); document.getElementById('agendaTomorrow').value = ""; btn.innerText = "Simpan ke Database"; });
     }
 
     // ======================================================================
-    // 4. LOGIKA EVENT & RUNDOWN HARI INI
+    // 4. LOGIKA EVENT DINAMIS (CRUD)
     // ======================================================================
-    const events = [
-        { start: "14:00", end: "15:00", title: "Kumpul Wali Kelas", desc: "Rapat koordinasi asrama", icon: "👥" },
-        { start: "15:00", end: "15:30", title: "Ashar & ATM", desc: "Shalat & Setor tunai ATM Magelang", icon: "💳" },
-        { start: "15:30", end: "17:30", title: "Artos Mall", desc: "Olahraga jalan santai & hunting barang", icon: "🛍️", btnAction: "Catat Belanja" },
-        { start: "17:30", end: "18:30", title: "Buka Puasa & Maghrib", desc: "Cari takjil dan makan di tempat", icon: "🍲" },
-        { start: "18:30", end: "19:30", title: "Kembali ke Kamar", desc: "Mandi & Istirahat", icon: "🚿" },
-        { start: "19:30", end: "20:15", title: "Shalat Tarawih", desc: "Ibadah Tarawih", icon: "🕌" },
-        { start: "20:15", end: "20:30", title: "Persiapan Healing", desc: "Siapkan baju ganti & perlengkapan", icon: "🎒" },
-        { start: "20:30", end: "21:05", title: "Perjalanan ke Kolam", desc: "OTW Kolam Air Panas", icon: "🏍️", btnMaps: "Buka Maps" },
-        { start: "21:05", end: "22:00", title: "Berenang & Berendam", desc: "Waktunya relaksasi", icon: "🏊‍♂️" },
-        { start: "22:00", end: "22:30", title: "Makan Malam", desc: "Kuliner sekitar kolam", icon: "🍜" },
-        { start: "22:30", end: "23:15", title: "Perjalanan Pulang", desc: "Kembali ke asrama", icon: "🏠" }
+    // Template awal jadwal hari ini jika belum ada data di lokal
+    const defaultEvents = [
+        { start: "14:00", end: "15:00", title: "Kumpul Wali Kelas", desc: "Rapat asrama", icon: "👥" },
+        { start: "15:30", end: "17:30", title: "Artos Mall", desc: "Jalan santai", icon: "🛍️" },
+        { start: "20:30", end: "22:00", title: "Kolam Air Panas", desc: "Healing & Berenang", icon: "🏊‍♂️" }
     ];
+
+    let events = JSON.parse(localStorage.getItem('myEventsPro')) || defaultEvents;
+
+    function saveAndRenderEvents() {
+        // Urutkan jadwal berdasarkan jam mulai secara otomatis
+        events.sort((a, b) => a.start.localeCompare(b.start));
+        localStorage.setItem('myEventsPro', JSON.stringify(events));
+        updateTimeline();
+    }
 
     function updateTimeline() {
         const timelineEl = document.getElementById('eventTimeline');
         timelineEl.innerHTML = '';
+        if(events.length === 0) { timelineEl.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Belum ada jadwal event. Tambahkan di bawah.</p>'; return; }
+
         const now = new Date();
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-        events.forEach((ev) => {
+        events.forEach((ev, i) => {
             const [sh, sm] = ev.start.split(':').map(Number);
             const [eh, em] = ev.end.split(':').map(Number);
-            const startMins = sh * 60 + sm;
-            const endMins = eh * 60 + em;
+            const startMins = sh * 60 + sm; const endMins = eh * 60 + em;
 
-            let statusClass = '';
-            let statusText = '';
-            
-            if (currentMinutes >= endMins) {
-                statusClass = 'past'; // Sudah Terlewat
-            } else if (currentMinutes >= startMins && currentMinutes < endMins) {
-                statusClass = 'active'; // Sedang Berlangsung
-                statusText = '<span style="color:var(--primary); font-size:11px; float:right;">🟢 BERLANGSUNG</span>';
+            let statusClass = ''; let statusText = '';
+            if (currentMinutes >= endMins) { statusClass = 'past'; } 
+            else if (currentMinutes >= startMins && currentMinutes < endMins) {
+                statusClass = 'active'; statusText = '<span style="color:var(--primary); font-size:10px; background:rgba(76,175,80,0.1); padding:2px 6px; border-radius:10px;">SEKARANG</span>';
             }
-
-            let buttonsHTML = '';
-            if (ev.btnMaps) buttonsHTML += `<button class="btn-mini map" onclick="alert('Membuka Google Maps...')">📍 Maps</button>`;
-            if (ev.btnAction) buttonsHTML += `<button class="btn-mini" onclick="prompt('Catat apa yang dibeli/pengeluaran:')">📝 ${ev.btnAction}</button>`;
 
             timelineEl.innerHTML += `
                 <div class="event-item ${statusClass}">
-                    <div class="event-time">${ev.start} - ${ev.end}</div>
-                    <div class="event-title">${ev.icon} ${ev.title} ${statusText}</div>
-                    <p class="event-desc">${ev.desc}</p>
-                    ${buttonsHTML ? `<div class="event-action">${buttonsHTML}</div>` : ''}
+                    <div class="event-header">
+                        <div>
+                            <div class="event-time">${ev.start} - ${ev.end}</div>
+                            <div class="event-title">${ev.icon || '📌'} ${ev.title} ${statusText}</div>
+                        </div>
+                        <div class="event-actions">
+                            <button onclick="editEvent(${i})">✏️</button>
+                            <button onclick="deleteEvent(${i})">🗑️</button>
+                        </div>
+                    </div>
+                    ${ev.desc ? `<p class="event-desc">${ev.desc}</p>` : ''}
                 </div>
             `;
         });
     }
 
-    // Fungsi Hitung Mundur (Countdown)
-    function updateCountdown() {
-        const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        
-        let targetEvent = null;
-        let targetTimeMins = 0;
-        let isOngoing = false;
+    // CRUD: Simpan (Tambah / Update) Event
+    function saveEvent() {
+        const start = document.getElementById('evStart').value;
+        const end = document.getElementById('evEnd').value;
+        const title = document.getElementById('evTitle').value.trim();
+        const desc = document.getElementById('evDesc').value.trim();
+        const icon = document.getElementById('evIcon').value.trim();
+        const editIndex = parseInt(document.getElementById('evEditIndex').value);
 
-        // Cari event yang sedang berlangsung atau yang paling dekat selanjutnya
+        if(!start || !end || !title) return alert("Jam mulai, selesai, dan Judul wajib diisi!");
+
+        const newEvent = { start, end, title, desc, icon };
+
+        if(editIndex > -1) { events[editIndex] = newEvent; document.getElementById('btnSaveEvent').innerText = "Tambah Jadwal"; } 
+        else { events.push(newEvent); }
+
+        document.getElementById('evStart').value = ''; document.getElementById('evEnd').value = '';
+        document.getElementById('evTitle').value = ''; document.getElementById('evDesc').value = '';
+        document.getElementById('evIcon').value = ''; document.getElementById('evEditIndex').value = '-1';
+        
+        saveAndRenderEvents();
+    }
+
+    // CRUD: Hapus Event
+    function deleteEvent(index) {
+        if(confirm(`Hapus jadwal "${events[index].title}"?`)) { events.splice(index, 1); saveAndRenderEvents(); }
+    }
+
+    // CRUD: Edit Event (Memindahkan data ke form)
+    function editEvent(index) {
+        const ev = events[index];
+        document.getElementById('evStart').value = ev.start; document.getElementById('evEnd').value = ev.end;
+        document.getElementById('evTitle').value = ev.title; document.getElementById('evDesc').value = ev.desc || '';
+        document.getElementById('evIcon').value = ev.icon || ''; document.getElementById('evEditIndex').value = index;
+        document.getElementById('btnSaveEvent').innerText = "Simpan Perubahan";
+        
+        // Scroll otomatis ke bawah agar form terlihat
+        document.querySelector('.event-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Hitung Mundur Event
+    function updateCountdown() {
+        if(events.length === 0) return;
+        const now = new Date(); const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        let targetEvent = null; let targetTimeMins = 0; let isOngoing = false;
+
         for (let ev of events) {
-            const [sh, sm] = ev.start.split(':').map(Number);
-            const [eh, em] = ev.end.split(':').map(Number);
-            const startMins = sh * 60 + sm;
-            const endMins = eh * 60 + em;
+            const [sh, sm] = ev.start.split(':').map(Number); const [eh, em] = ev.end.split(':').map(Number);
+            const startMins = sh * 60 + sm; const endMins = eh * 60 + em;
 
             if (currentMinutes >= startMins && currentMinutes < endMins) {
-                // Sedang berlangsung, targetnya adalah WAKTU SELESAI
                 targetEvent = ev; targetTimeMins = endMins; isOngoing = true; break;
             } else if (currentMinutes < startMins) {
-                // Event selanjutnya, targetnya adalah WAKTU MULAI
                 targetEvent = ev; targetTimeMins = startMins; break;
             }
         }
@@ -343,25 +415,21 @@
 
         if (targetEvent) {
             let diffMins = targetTimeMins - currentMinutes;
-            let h = Math.floor(diffMins / 60);
-            let m = diffMins % 60;
-            let s = 59 - now.getSeconds(); // Simulasi detik
-            
+            let h = Math.floor(diffMins / 60); let m = diffMins % 60; let s = 59 - now.getSeconds();
             cdLabel.innerText = isOngoing ? "Sisa Waktu Agenda Ini:" : "Menuju Agenda Berikutnya:";
             cdTimer.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             nextName.innerText = isOngoing ? `Selesai ${targetEvent.title}` : `Mulai ${targetEvent.title}`;
         } else {
-            cdLabel.innerText = "Semua Agenda Selesai!";
-            cdTimer.innerText = "🎉";
-            nextName.innerText = "Selamat beristirahat.";
+            cdLabel.innerText = "Semua Agenda Selesai!"; cdTimer.innerText = "🎉"; nextName.innerText = "Selamat beristirahat.";
         }
     }
 
-    // Jalankan awal
+    // Inisialisasi
     renderHabits();
     updateTimeline();
-    setInterval(updateCountdown, 1000); // Update hitung mundur tiap 1 detik
-    setInterval(updateTimeline, 60000); // Update warna timeline tiap 1 menit
+    fetchServerData();
+    setInterval(updateCountdown, 1000);
+    setInterval(updateTimeline, 60000);
 
 </script>
 
